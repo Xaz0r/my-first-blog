@@ -4,15 +4,26 @@ from django.utils import timezone
 
 
 class Post(models.Model):
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    title = models.CharField(max_length=200)
-    text = models.TextField()
-    created_date = models.DateTimeField(default=timezone.now)
-    published_date = models.DateTimeField(blank=True, null=True)
+    class Status(models.TextChoices):
+        DRAFT = 'DF', 'Draft'
+        PUBLISHED = 'PB', 'Published'
 
-    def publish(self):
-        self.published_date = timezone.now()
-        self.save()
+    title = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=250)
+    body = models.TextField()
+    publish = models.DateTimeField(default=timezone.now)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=2, choices=Status.choices, default=Status.DRAFT)
+
+    class Meta:
+        ordering = ['-publish']  # Уже сортирует по полю 'publish'
+        indexes = [
+            models.Index(fields=['-publish']),  # Индекс для более быстрой сортировки
+        ]
 
     def __str__(self):
         return self.title
+
+
+    
